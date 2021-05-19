@@ -12,18 +12,22 @@ for ([csv => ","], [pipes => "|"], [ssv => " "], [tsv => "\t"]) {
   my ($name, $sep) = @$_;
   my $empty = $name =~ m!^pipes! ? '' : '0';
 
-  @errors = $schema->validate_request([get => '/pets'], {query => {"${name}0" => $empty, multir => ''}});
+  @errors = $schema->validate_request([get => '/pets'], {query => {"${name}0" => $empty, multir => '', csvds => ''}});
   is "@errors", "", "collectionFormat ${name}0 empty string";
 
-  @errors = $schema->validate_request([get => '/pets'], {query => {"${name}0" => '42', multir => ''}});
+  @errors = $schema->validate_request([get => '/pets'], {query => {"${name}0" => '42', multir => '', csvds => ''}});
   is "@errors", "", "collectionFormat ${name}0 single item";
 
-  @errors = $schema->validate_request([get => '/pets'], {query => {"${name}0" => "4${sep}2", multir => ''}});
+  @errors = $schema->validate_request([get => '/pets'], {query => {"${name}0" => "4${sep}2", multir => '', csvds => ''}});
   is "@errors", "", "collectionFormat ${name}0 two item";
 
-  @errors = $schema->validate_request([get => '/pets'], {query => {"${name}2" => '42', multir => ''}});
+  @errors = $schema->validate_request([get => '/pets'], {query => {"${name}2" => '42', multir => '', csvds => ''}});
   is "@errors", "/${name}2: Not enough items: 1/2.", "collectionFormat ${name}2 single item";
 }
+
+
+@errors = $schema->validate_request([get => '/pets'], {query => {"cdv0" => 0, multir => ''}});
+is "@errors", "/csvds/0: Expected number - got string.", "default for array parameter should be array, not empty string";
 
 done_testing;
 
@@ -52,6 +56,8 @@ __DATA__
         "parameters": [
           {"name": "csv0", "in": "query", "type": "array", "collectionFormat": "csv", "items": {"type": "number"}, "minItems": 0},
           {"name": "csv2", "in": "query", "type": "array", "collectionFormat": "csv", "items": {"type": "number"}, "minItems": 2},
+          {"name": "csvda", "in": "query", "type": "array", "collectionFormat": "csv", "items": {"type": "number"}, "default": []},
+          {"name": "csvds", "in": "query", "type": "array", "collectionFormat": "csv", "items": {"type": "number"}, "default": ""},
           {"name": "multi0", "in": "query", "type": "array", "collectionFormat": "multi", "items": {"type": "integer"}, "minItems": 0},
           {"name": "multi2", "in": "query", "type": "array", "collectionFormat": "multi", "items": {"type": "integer"}, "minItems": 2},
           {"name": "multir", "in": "query", "type": "array", "collectionFormat": "multi", "required": true, "items": {"type": "string"}, "minItems":1},
